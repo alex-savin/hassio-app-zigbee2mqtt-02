@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        arch: [amd64]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Log in to ghcr.io
+        if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare build context
+        run: |
+          cp -R common/rootfs zigbee2mqtt-02/
+          cp common/Dockerfile zigbee2mqtt-02/
+          cp common/build.yaml zigbee2mqtt-02/
+
+      - name: Build
+        uses: home-assistant/builder@2026.02.1
+        with:
+          args: |
+            --${{ matrix.arch }} \
+            --target zigbee2mqtt-02 \
+            --no-latest --test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate config.json
+        run: |
+          echo "Validating config.json..."
+          jq empty zigbee2mqtt-02/config.json
+          echo "config.json is valid JSON"
+
+      - name: Validate repository.json
+        run: |
+          echo "Validating repository.json..."
+          jq empty repository.json
+          echo "repository.json is valid JSON"
+
+      - name: Check required fields
+        run: |
+          SLUG=$(jq -r '.slug' zigbee2mqtt-02/config.json)
+          VERSION=$(jq -r '.version' zigbee2mqtt-02/config.json)
+          IMAGE=$(jq -r '.image' zigbee2mqtt-02/config.json)
+          echo "Slug: $SLUG"
+          echo "Version: $VERSION"
+          echo "Image: $IMAGE"
+          [[ "$SLUG" == "zigbee2mqtt-02" ]] || { echo "ERROR: Unexpected slug"; exit 1; }
+          [[ -n "$VERSION" && "$VERSION" != "null" ]] || { echo "ERROR: Missing version"; exit 1; }
+          [[ -n "$IMAGE" && "$IMAGE" != "null" ]] || { echo "ERROR: Missing image"; exit 1; }

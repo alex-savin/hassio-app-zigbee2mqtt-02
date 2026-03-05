@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Zigbee2MQTT version (e.g. 2.9.1-1)'
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set version variables
+        id: version
+        run: |
+          echo "addon=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          echo "z2m=$(echo "${{ github.event.inputs.version }}" | cut -d - -f 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Update config.json version
+        run: |
+          jq '.version = "${{ steps.version.outputs.addon }}"' zigbee2mqtt-02/config.json > tmp.json
+          mv tmp.json zigbee2mqtt-02/config.json
+
+      - name: Update CHANGELOG.md
+        run: |
+          echo -e "## ${{ steps.version.outputs.addon }}\n- Updated Zigbee2MQTT to version [\`${{ steps.version.outputs.z2m }}\`](https://github.com/Koenkk/zigbee2mqtt/releases/tag/${{ steps.version.outputs.z2m }})\n" | \
+            cat - zigbee2mqtt-02/CHANGELOG.md > tmp.md
+          mv tmp.md zigbee2mqtt-02/CHANGELOG.md
+
+      - name: Commit version bump
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "v${{ steps.version.outputs.addon }}"
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: "v${{ steps.version.outputs.addon }}"
+          body: "- Updated Zigbee2MQTT to version [`${{ steps.version.outputs.z2m }}`](https://github.com/Koenkk/zigbee2mqtt/releases/tag/${{ steps.version.outputs.z2m }})"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: release
+    strategy:
+      matrix:
+        arch: [aarch64, amd64]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare build context
+        run: |
+          cp -R common/rootfs zigbee2mqtt-02/
+          cp common/Dockerfile zigbee2mqtt-02/
+          cp common/build.yaml zigbee2mqtt-02/
+
+      - name: Build and push
+        uses: home-assistant/builder@2026.02.1
+        with:
+          args: |
+            --${{ matrix.arch }} \
+            --target zigbee2mqtt-02 \
+            --no-cache

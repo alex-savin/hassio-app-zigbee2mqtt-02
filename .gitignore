@@ -1,0 +1,19 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.log
+.env
+secrets.json
+
+# Generated at build time
+zigbee2mqtt-02/rootfs
+zigbee2mqtt-02/Dockerfile
+zigbee2mqtt-02/build.yaml
+
+# Local converter checkout
+z2m-converter-halo/
