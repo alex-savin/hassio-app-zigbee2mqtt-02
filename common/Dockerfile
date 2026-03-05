@@ -47,10 +47,10 @@ RUN apk add --no-cache --virtual .buildtools npm make gcc g++ linux-headers git 
         https://github.com/alex-savin/zigbee-herdsman-converters.git /custom-converters && \
     cd /custom-converters && \
     npm install -g $(jq -r '.packageManager' package.json) && \
-    pnpm install --frozen-lockfile --no-optional --unsafe-perm && \
+    HUSKY=0 pnpm install --frozen-lockfile --no-optional --unsafe-perm && \
     pnpm run build && \
     rm -rf node_modules && \
-    pnpm install --frozen-lockfile --no-optional --unsafe-perm --prod
+    HUSKY=0 pnpm install --frozen-lockfile --no-optional --unsafe-perm --prod
 
 # Replace stock zigbee-herdsman-converters with custom build
 FROM dependencies_and_build as patched
