@@ -42,15 +42,17 @@ RUN apk add --no-cache --virtual .buildtools npm make gcc g++ linux-headers udev
 # Custom zigbee-herdsman-converters with Halo smoke detector support
 FROM base as custom_converters
 
+ENV HUSKY=0
+
 RUN apk add --no-cache --virtual .buildtools npm make gcc g++ linux-headers git python3 && \
     git clone -b feature/halo-smoke-detector --single-branch --depth 1 \
         https://github.com/alex-savin/zigbee-herdsman-converters.git /custom-converters && \
     cd /custom-converters && \
     npm install -g $(jq -r '.packageManager' package.json) && \
-    HUSKY=0 pnpm install --frozen-lockfile --no-optional --unsafe-perm && \
+    pnpm install --frozen-lockfile --no-optional --unsafe-perm && \
     pnpm run build && \
     rm -rf node_modules && \
-    HUSKY=0 pnpm install --frozen-lockfile --no-optional --unsafe-perm --prod
+    pnpm install --frozen-lockfile --no-optional --unsafe-perm --prod
 
 # Replace stock zigbee-herdsman-converters with custom build
 FROM dependencies_and_build as patched
