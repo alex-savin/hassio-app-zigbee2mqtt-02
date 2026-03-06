@@ -16,7 +16,7 @@ This is **Instance 02** of the Zigbee2MQTT add-on, running alongside the stock a
 |---------|---------------|-------------------|
 | Slug | `zigbee2mqtt` | `zigbee2mqtt-02` |
 | Data path | `/config/zigbee2mqtt` | `/config/zigbee2mqtt-02` |
-| Socat host port | 8485 | 8486 |
+| Socat host port | 8487 | 8487 |
 
 ## Pairing
 
@@ -47,11 +47,11 @@ Configuration required for startup is available from the add-on configuration. O
 
 #### Examples
 
-- **socat** (uses internal port 8485, mapped to host 8486)
+- **socat** (uses internal port 8487, mapped to host 8487)
   ```yaml
   enabled: false
   master: pty,raw,echo=0,link=/tmp/ttyZ2M,mode=777
-  slave: tcp-listen:8485,keepalive,nodelay,reuseaddr,keepidle=1,keepintvl=1,keepcnt=5
+  slave: tcp-listen:8487,keepalive,nodelay,reuseaddr,keepidle=1,keepintvl=1,keepcnt=5
   options: "-d -d"
   log: false
   ```
@@ -106,4 +106,4 @@ Socat forwards a serial device over TCP. Options:
 - `log` — true/false, logs to `$DATA_PATH/socat.log` (default: false)
 
 > [!NOTE]
-> The default socat slave listens on internal port `8485`, mapped to host port `8486`. Adjust the `master` and `slave` options per your needs. The Z2M serial port setting must be changed separately.
+> The default socat slave listens on internal port `8487`, mapped to host port `8487`. Adjust the `master` and `slave` options per your needs. The Z2M serial port setting must be changed separately.

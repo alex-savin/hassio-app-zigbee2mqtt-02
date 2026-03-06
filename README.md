@@ -14,10 +14,10 @@ Home Assistant does not natively support installing the same add-on twice. If yo
 |---------|-------|------------|
 | Slug | `zigbee2mqtt` | `zigbee2mqtt-02` |
 | Data path | `/config/zigbee2mqtt` | `/config/zigbee2mqtt-02` |
-| Socat host port | 8485 | 8486 |
+| Socat host port | 8487 | 8487 |
 | Image | `ghcr.io/zigbee2mqtt/zigbee2mqtt-{arch}` | `ghcr.io/alex-savin/zigbee2mqtt-02-{arch}` |
 | Converters | Stock `zigbee-herdsman-converters` | Custom fork with [Halo smoke detector](https://github.com/alex-savin/zigbee-herdsman-converters/tree/feature/halo-smoke-detector) support |
-> Internal container ports (8485 socat, 8099 frontend) remain unchanged. Only external host port mappings differ.
+> Internal container ports (8487 socat, 8092 frontend) remain unchanged. Only external host port mappings differ.
 
 ## Installation
 
