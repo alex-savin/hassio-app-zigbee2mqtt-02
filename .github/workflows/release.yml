@@ -73,7 +73,7 @@ jobs:
           cp common/build.yaml zigbee2mqtt-02/
 
       - name: Build and push
-        uses: home-assistant/builder@2026.02.1
+        uses: home-assistant/builder@2026.03.2
         with:
           args: |
             --${{ matrix.arch }} \
