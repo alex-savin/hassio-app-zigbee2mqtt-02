@@ -21,6 +21,8 @@
   "boot": "auto",
   "init": false,
   "ingress": true,
+  "ingress_port": 8092,
+  "ingress_protocol": "http",
   "timeout": 30,
   "panel_icon": "mdi:zigbee",
   "map": [
