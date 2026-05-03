@@ -51,31 +51,37 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     needs: release
-    strategy:
-      matrix:
-        arch: [aarch64, amd64]
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
-      - name: Log in to ghcr.io
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get addon version
+        id: addon
+        run: echo "version=$(jq -r '.version' zigbee2mqtt-02/config.json)" >> "$GITHUB_OUTPUT"
 
       - name: Prepare build context
         run: |
           cp -R common/rootfs zigbee2mqtt-02/
           cp common/Dockerfile zigbee2mqtt-02/
-          cp common/build.yaml zigbee2mqtt-02/
 
-      - name: Build and push
-        uses: home-assistant/builder@2026.02.1
+      - name: Build and push image
+        uses: home-assistant/builder/actions/build-image@2026.03.2
         with:
-          args: |
-            --${{ matrix.arch }} \
-            --target zigbee2mqtt-02 \
-            --no-cache
+          arch: amd64
+          context: ./zigbee2mqtt-02
+          image: ghcr.io/${{ github.repository_owner }}/zigbee2mqtt-02-amd64
+          image-tags: |
+            ${{ steps.addon.outputs.version }}
+            latest
+          version: ${{ steps.addon.outputs.version }}
+          push: "true"
+          cosign: "false"
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.22
+            BUILD_VERSION=${{ steps.addon.outputs.version }}
