@@ -14,6 +14,3 @@ secrets.json
 zigbee2mqtt-02/rootfs
 zigbee2mqtt-02/Dockerfile
 zigbee2mqtt-02/build.yaml
-
-# Local converter checkout
-z2m-converter-halo/

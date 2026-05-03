@@ -39,56 +39,15 @@ RUN apk add --no-cache --virtual .buildtools npm make gcc g++ linux-headers udev
     rm -rf `find ./node_modules/.pnpm/ -wholename "*/@serialport/bindings-cpp/prebuilds" -type d` && \
     pnpm rebuild @serialport/bindings-cpp
 
-# Custom zigbee-herdsman-converters with Halo smoke detector support
-FROM base as custom_converters
-
-ENV HUSKY=0
-
-RUN apk add --no-cache --virtual .buildtools npm make gcc g++ linux-headers git python3 && \
-    git clone -b feature/halo-smoke-detector --single-branch --depth 1 \
-        https://github.com/alex-savin/zigbee-herdsman-converters.git /custom-converters && \
-    cd /custom-converters && \
-    npm install -g $(jq -r '.packageManager' package.json) && \
-    pnpm install --frozen-lockfile --no-optional --unsafe-perm && \
-    pnpm run build && \
-    rm -rf node_modules && \
-    pnpm install --frozen-lockfile --no-optional --unsafe-perm --prod --ignore-scripts
-
-# Replace stock zigbee-herdsman-converters with custom build
-FROM dependencies_and_build as patched
-
-RUN CONV_PKG=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "zigbee-herdsman-converters@*" | head -1) && \
-    if [ -n "$CONV_PKG" ]; then \
-        CONV_DIR="$CONV_PKG/node_modules/zigbee-herdsman-converters"; \
-        echo "Replacing stock converters at $CONV_DIR"; \
-        rm -rf "$CONV_DIR/dist" "$CONV_DIR/node_modules"; \
-    else \
-        CONV_DIR="/app/node_modules/zigbee-herdsman-converters"; \
-        echo "Replacing stock converters at $CONV_DIR (flat layout)"; \
-        rm -rf "$CONV_DIR/dist" "$CONV_DIR/node_modules"; \
-    fi && \
-    echo "$CONV_DIR" > /tmp/conv_dir_path
-
-COPY --from=custom_converters /custom-converters/dist /tmp/custom-conv-dist
-COPY --from=custom_converters /custom-converters/node_modules /tmp/custom-conv-node_modules
-COPY --from=custom_converters /custom-converters/package.json /tmp/custom-conv-package.json
-
-RUN CONV_DIR=$(cat /tmp/conv_dir_path) && \
-    cp -r /tmp/custom-conv-dist "$CONV_DIR/dist" && \
-    cp -r /tmp/custom-conv-node_modules "$CONV_DIR/node_modules" && \
-    cp /tmp/custom-conv-package.json "$CONV_DIR/package.json" && \
-    echo "Custom zigbee-herdsman-converters (Halo) installed at $CONV_DIR" && \
-    rm -rf /tmp/custom-conv-dist /tmp/custom-conv-node_modules /tmp/custom-conv-package.json /tmp/conv_dir_path
-
 # Release
 FROM base as release
 
 WORKDIR /app
 
 COPY rootfs /
-COPY --from=patched /app/node_modules ./node_modules
-COPY --from=patched /app/dist ./dist
-COPY --from=patched /app/package.json /app/LICENSE /app/index.js ./
+COPY --from=dependencies_and_build /app/node_modules ./node_modules
+COPY --from=dependencies_and_build /app/dist ./dist
+COPY --from=dependencies_and_build /app/package.json /app/LICENSE /app/index.js ./
 
 ENV NODE_ENV production
 
