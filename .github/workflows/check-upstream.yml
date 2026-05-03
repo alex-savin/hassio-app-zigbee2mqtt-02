@@ -1,0 +1,60 @@
+name: Check Upstream Release
+
+# Daily check for new Zigbee2MQTT upstream releases.
+# When a new upstream tag is detected, automatically dispatches the
+# Release workflow with version "<upstream>-1" to bump, build, and publish.
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Get latest upstream version
+        id: upstream
+        run: |
+          UPSTREAM=$(gh api repos/Koenkk/zigbee2mqtt/releases/latest --jq '.tag_name')
+          echo "version=${UPSTREAM}" >> "$GITHUB_OUTPUT"
+          echo "Upstream latest: ${UPSTREAM}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current addon version
+        id: current
+        run: |
+          ADDON_VERSION=$(jq -r '.version' zigbee2mqtt-02/config.json)
+          # Strip the "-N" suffix to get the upstream version we're tracking
+          CURRENT_Z2M=$(echo "${ADDON_VERSION}" | cut -d- -f1)
+          echo "addon=${ADDON_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "z2m=${CURRENT_Z2M}" >> "$GITHUB_OUTPUT"
+          echo "Current addon: ${ADDON_VERSION} (tracking z2m ${CURRENT_Z2M})"
+
+      - name: Determine if release is needed
+        id: decide
+        run: |
+          if [ "${{ steps.upstream.outputs.version }}" != "${{ steps.current.outputs.z2m }}" ]; then
+            echo "needs_release=true" >> "$GITHUB_OUTPUT"
+            echo "new_version=${{ steps.upstream.outputs.version }}-1" >> "$GITHUB_OUTPUT"
+            echo "::notice::New upstream version detected: ${{ steps.upstream.outputs.version }} (current: ${{ steps.current.outputs.z2m }})"
+          else
+            echo "needs_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Already up to date with upstream ${{ steps.upstream.outputs.version }}"
+          fi
+
+      - name: Trigger Release workflow
+        if: steps.decide.outputs.needs_release == 'true'
+        run: |
+          gh workflow run release.yml -f version="${{ steps.decide.outputs.new_version }}"
+          echo "::notice::Dispatched Release workflow for ${{ steps.decide.outputs.new_version }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
