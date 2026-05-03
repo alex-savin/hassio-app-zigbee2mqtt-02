@@ -1,4 +1,7 @@
 ## 2.9.2-3
+- Updated Zigbee2MQTT to version [`2.9.2`](https://github.com/Koenkk/zigbee2mqtt/releases/tag/2.9.2)
+
+## 2.9.2-3
 - Dropped `aarch64` architecture support; addon is now `amd64`-only
 - Migrated build pipeline from deprecated `home-assistant/builder` to new reusable `build-image` action
 
