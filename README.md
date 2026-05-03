@@ -11,13 +11,15 @@ Home Assistant does not natively support installing the same add-on twice. If yo
 ## Differences from the Stock Add-on
 
 | Setting | Stock | Instance 02 |
-|---------|-------|------------|
+|---------|-------|-------------|
 | Slug | `zigbee2mqtt` | `zigbee2mqtt-02` |
 | Data path | `/config/zigbee2mqtt` | `/config/zigbee2mqtt-02` |
-| Socat host port | 8487 | 8487 |
-| Image | `ghcr.io/zigbee2mqtt/zigbee2mqtt-{arch}` | `ghcr.io/alex-savin/zigbee2mqtt-02-{arch}` |
-| Converters | Stock `zigbee-herdsman-converters` | Custom fork with [Halo smoke detector](https://github.com/alex-savin/zigbee-herdsman-converters/tree/feature/halo-smoke-detector) support |
-> Internal container ports (8487 socat, 8092 frontend) remain unchanged. Only external host port mappings differ.
+| Socat host port | 8485 | 8487 |
+| Frontend internal port | 8485 | 8092 |
+| Image | `ghcr.io/zigbee2mqtt/zigbee2mqtt-{arch}` | `ghcr.io/alex-savin/zigbee2mqtt-02-amd64` |
+| Architectures | `aarch64`, `amd64`, `armv7`, … | `amd64` only |
+
+> Internal container ports (8487 socat, 8092 frontend) are different from Instance 01 (8486/8091) so the two add-ons can run side-by-side without conflicts.
 
 ## Installation
 
@@ -49,33 +51,37 @@ Alternatively, manually update `zigbee2mqtt-02/config.json` version field and pu
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **CI** | Push / PR | Lint JSON configs, build Docker image (test mode) |
-| **CI** | Tag push | Build and push image to `ghcr.io` |
-| **Release** | Manual dispatch | Bump version, tag, release, build & push |
+| **CI** | Push / PR / manual | Lint JSON configs, test-build the Docker image (no push) |
+| **Release** | Manual dispatch (with `version`) | Bump `config.json`, prepend CHANGELOG, tag, create GitHub release, then build & push image |
+| **Release** | `release: published` | Build & push image for the published release tag (no version bump) |
+| **Check Upstream Release** | Daily at 06:00 UTC / manual | Compare upstream Z2M latest tag with the current addon version and auto-dispatch **Release** with `<upstream>-1` when a new version is detected |
+
+Images are built natively on `ubuntu-latest` (amd64) using the new reusable [`home-assistant/builder/actions/build-image`](https://github.com/home-assistant/builder) action.
 
 ## Repository Structure
 
 ```
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml          # Build & test pipeline
-│   │   └── release.yml     # Version bump & release
-│   └── dependabot.yml      # Keep GH Actions up to date
+│   │   ├── ci.yml             # Build & test pipeline
+│   │   ├── release.yml        # Version bump, tag, release, build & push
+│   │   └── check-upstream.yml # Daily upstream Z2M version watcher
+│   └── dependabot.yml         # Keep GH Actions up to date
 ├── common/
-│   ├── Dockerfile           # Multi-stage build (custom Halo converters)
-│   ├── build.yaml           # HA builder base image config
+│   ├── Dockerfile             # Multi-stage build (identical to upstream)
+│   ├── build.yaml             # HA builder base image config
 │   └── rootfs/
 │       └── docker-entrypoint.sh  # Add-on entrypoint
 ├── zigbee2mqtt-02/
-│   ├── config.json          # Add-on manifest (unique slug, ports, image)
-│   ├── DOCS.md              # Documentation (shown in HA UI)
-│   ├── README.md            # Add-on store description
-│   ├── CHANGELOG.md         # Version history
-│   ├── icon.png             # Add-on icon
-│   └── logo.png             # Add-on logo
-├── repository.json          # HA add-on repository metadata
+│   ├── config.json            # Add-on manifest (unique slug, ports, image)
+│   ├── DOCS.md                # Documentation (shown in HA UI)
+│   ├── README.md              # Add-on store description
+│   ├── CHANGELOG.md           # Version history
+│   ├── icon.png               # Add-on icon
+│   └── logo.png               # Add-on logo
+├── repository.json            # HA add-on repository metadata
 ├── LICENSE
-└── README.md                # This file
+└── README.md                  # This file
 ```
 
 ## Credits
