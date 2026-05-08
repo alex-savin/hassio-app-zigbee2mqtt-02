@@ -1,6 +1,6 @@
 {
   "name": "Zigbee2MQTT Instance 02",
-  "version": "2.10.1-1",
+  "version": "2.10.1-2",
   "slug": "zigbee2mqtt-02",
   "description": "Use your ZigBee devices without the vendor's bridge or gateway (Instance 02)",
   "breaking_versions": [
@@ -24,6 +24,7 @@
   "ingress_protocol": "http",
   "timeout": 30,
   "panel_icon": "mdi:zigbee",
+  "panel_title": "Zigbee2MQTT #02",
   "map": [
     {
       "type": "share",

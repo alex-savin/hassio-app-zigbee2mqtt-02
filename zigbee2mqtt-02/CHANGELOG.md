@@ -1,3 +1,6 @@
+## 2.10.1-2
+- Set sidebar panel title to `Zigbee2MQTT #02`
+
 ## 2.10.1-1
 - Updated Zigbee2MQTT to version [`2.10.1`](https://github.com/Koenkk/zigbee2mqtt/releases/tag/2.10.1)
 
