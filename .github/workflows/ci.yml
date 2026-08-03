@@ -26,7 +26,7 @@ jobs:
           cp common/Dockerfile zigbee2mqtt-02/
 
       - name: Test build image
-        uses: home-assistant/builder/actions/build-image@2026.03.2
+        uses: home-assistant/builder/actions/build-image@2026.06.0
         with:
           arch: amd64
           context: ./zigbee2mqtt-02
