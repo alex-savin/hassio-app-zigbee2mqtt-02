@@ -32,7 +32,7 @@ jobs:
       - name: Get current addon version
         id: current
         run: |
-          ADDON_VERSION=$(jq -r '.version' zigbee2mqtt-02/config.json)
+          ADDON_VERSION=$(yq '.version' zigbee2mqtt-02/config.yaml)
           # Strip the "-N" suffix to get the upstream version we're tracking
           CURRENT_Z2M=$(echo "${ADDON_VERSION}" | cut -d- -f1)
           echo "addon=${ADDON_VERSION}" >> "$GITHUB_OUTPUT"

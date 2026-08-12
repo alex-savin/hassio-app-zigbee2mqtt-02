@@ -28,10 +28,10 @@ jobs:
           echo "addon=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
           echo "z2m=$(echo "${{ github.event.inputs.version }}" | cut -d - -f 1)" >> "$GITHUB_OUTPUT"
 
-      - name: Update config.json version
-        run: |
-          jq '.version = "${{ steps.version.outputs.addon }}"' zigbee2mqtt-02/config.json > tmp.json
-          mv tmp.json zigbee2mqtt-02/config.json
+      - name: Update config.yaml version
+        env:
+          ADDON_VERSION: ${{ steps.version.outputs.addon }}
+        run: yq -i '.version = strenv(ADDON_VERSION)' zigbee2mqtt-02/config.yaml
 
       - name: Update CHANGELOG.md
         run: |
@@ -66,7 +66,7 @@ jobs:
 
       - name: Get addon version
         id: addon
-        run: echo "version=$(jq -r '.version' zigbee2mqtt-02/config.json)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(yq '.version' zigbee2mqtt-02/config.yaml)" >> "$GITHUB_OUTPUT"
 
       - name: Prepare build context
         run: |

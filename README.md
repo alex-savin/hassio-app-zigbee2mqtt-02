@@ -40,19 +40,19 @@ Use the **Release** workflow in GitHub Actions:
 1. Go to **Actions → Release → Run workflow**.
 2. Enter the new version (e.g. `2.10.0-1`).
 3. The workflow will:
-   - Update `config.json` with the new version.
+   - Update `config.yaml` with the new version.
    - Prepend the version to `CHANGELOG.md`.
    - Create a git tag and GitHub release.
    - Build and push Docker images to `ghcr.io`.
 
-Alternatively, manually update `zigbee2mqtt-02/config.json` version field and push a tag.
+Alternatively, manually update `zigbee2mqtt-02/config.yaml` version field and push a tag.
 
 ## CI/CD
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **CI** | Push / PR / manual | Lint JSON configs, test-build the Docker image (no push) |
-| **Release** | Manual dispatch (with `version`) | Bump `config.json`, prepend CHANGELOG, tag, create GitHub release, then build & push image |
+| **CI** | Push / PR / manual | Lint YAML configs, test-build the Docker image (no push) |
+| **Release** | Manual dispatch (with `version`) | Bump `config.yaml`, prepend CHANGELOG, tag, create GitHub release, then build & push image |
 | **Release** | `release: published` | Build & push image for the published release tag (no version bump) |
 | **Check Upstream Release** | Daily at 06:00 UTC / manual | Compare upstream Z2M latest tag with the current addon version and auto-dispatch **Release** with `<upstream>-1` when a new version is detected |
 
@@ -73,13 +73,13 @@ Images are built natively on `ubuntu-latest` (amd64) using the new reusable [`ho
 │   └── rootfs/
 │       └── docker-entrypoint.sh  # Add-on entrypoint
 ├── zigbee2mqtt-02/
-│   ├── config.json            # Add-on manifest (unique slug, ports, image)
+│   ├── config.yaml            # Add-on manifest (unique slug, ports, image)
 │   ├── DOCS.md                # Documentation (shown in HA UI)
 │   ├── README.md              # Add-on store description
 │   ├── CHANGELOG.md           # Version history
 │   ├── icon.png               # Add-on icon
 │   └── logo.png               # Add-on logo
-├── repository.json            # HA add-on repository metadata
+├── repository.yaml            # HA add-on repository metadata
 ├── LICENSE
 └── README.md                  # This file
 ```

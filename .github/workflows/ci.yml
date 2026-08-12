@@ -18,7 +18,7 @@ jobs:
 
       - name: Get addon version
         id: addon
-        run: echo "version=$(jq -r '.version' zigbee2mqtt-02/config.json)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(yq '.version' zigbee2mqtt-02/config.yaml)" >> "$GITHUB_OUTPUT"
 
       - name: Prepare build context
         run: |
@@ -45,23 +45,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Validate config.json
+      - name: Validate config.yaml
         run: |
-          echo "Validating config.json..."
-          jq empty zigbee2mqtt-02/config.json
-          echo "config.json is valid JSON"
+          echo "Validating config.yaml..."
+          yq -e '.' zigbee2mqtt-02/config.yaml > /dev/null
+          echo "config.yaml is valid YAML"
 
-      - name: Validate repository.json
+      - name: Validate repository.yaml
         run: |
-          echo "Validating repository.json..."
-          jq empty repository.json
-          echo "repository.json is valid JSON"
+          echo "Validating repository.yaml..."
+          yq -e '.' repository.yaml > /dev/null
+          echo "repository.yaml is valid YAML"
 
       - name: Check required fields
         run: |
-          SLUG=$(jq -r '.slug' zigbee2mqtt-02/config.json)
-          VERSION=$(jq -r '.version' zigbee2mqtt-02/config.json)
-          IMAGE=$(jq -r '.image' zigbee2mqtt-02/config.json)
+          SLUG=$(yq '.slug' zigbee2mqtt-02/config.yaml)
+          VERSION=$(yq '.version' zigbee2mqtt-02/config.yaml)
+          IMAGE=$(yq '.image' zigbee2mqtt-02/config.yaml)
           echo "Slug: $SLUG"
           echo "Version: $VERSION"
           echo "Image: $IMAGE"
